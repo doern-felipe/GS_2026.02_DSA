@@ -4,36 +4,53 @@ from algoritmos import buscar_por_categoria, buscar_por_titulo, ordenar_lista
 
 TIPOS_VALIDOS = ("Oferta", "Pedido", "Projeto")
 
+# limites de tamanho dos campos (iguais aos do modelo C)
+MAX_TITULO = 100
+MAX_TIPO = 10
+MAX_CATEGORIA = 50
+MAX_DESCRICAO = 200
+MAX_REQUISITOS = 150
+MAX_LOCAL = 100
+MAX_RESPONSAVEL = 60
+
 
 class SairPrograma(Exception):
     """Sinaliza que o usuário quer encerrar o programa (Ctrl+C/Ctrl+D)."""
 
 
-def ler_texto(campo: str) -> str:
-    """Lê um texto não vazio do terminal."""
+def ler_texto(prompt: str, obrigatorio: bool = True,
+              max_len: int | None = None) -> str:
+    """Lê um texto do terminal, validando vazio e tamanho máximo."""
     while True:
         try:
-            valor = input(f"{campo}: ").strip()
+            valor = input(f"{prompt}: ").strip()
         except (EOFError, KeyboardInterrupt):
             raise SairPrograma
-        if valor == "":
-            print(f"O campo '{campo}' não pode ficar vazio.")
+        if obrigatorio and valor == "":
+            print(f"O campo '{prompt}' não pode ficar vazio.")
+            continue
+        if max_len is not None and len(valor) > max_len:
+            print(f"O texto deve ter no máximo {max_len} caracteres.")
             continue
         return valor
 
 
-def ler_inteiro_positivo(campo: str) -> int:
-    """Lê um número inteiro maior que zero."""
+def ler_inteiro(prompt: str, minimo: int | None = None,
+                maximo: int | None = None) -> int:
+    """Lê um número inteiro, validando texto, vazio e faixa."""
     while True:
         try:
-            valor = int(input(f"{campo}: ").strip())
+            valor = int(input(f"{prompt}: ").strip())
         except ValueError:
-            print(f"O campo '{campo}' deve ser um número inteiro.")
+            print("Entrada inválida. Digite um número inteiro.")
             continue
         except (EOFError, KeyboardInterrupt):
             raise SairPrograma
-        if valor <= 0:
-            print(f"O campo '{campo}' deve ser maior que zero.")
+        if minimo is not None and valor < minimo:
+            print(f"O valor deve ser no mínimo {minimo}.")
+            continue
+        if maximo is not None and valor > maximo:
+            print(f"O valor deve ser no máximo {maximo}.")
             continue
         return valor
 
@@ -41,7 +58,7 @@ def ler_inteiro_positivo(campo: str) -> int:
 def ler_tipo() -> str:
     """Lê o tipo, aceitando apenas Oferta, Pedido ou Projeto."""
     while True:
-        valor = ler_texto("Tipo (Oferta/Pedido/Projeto)")
+        valor = ler_texto("Tipo (Oferta/Pedido/Projeto)", max_len=MAX_TIPO)
         if valor in TIPOS_VALIDOS:
             return valor
         print("Tipo inválido. Digite Oferta, Pedido ou Projeto.")
@@ -50,13 +67,7 @@ def ler_tipo() -> str:
 def ler_id(lista: ListaEncadeada) -> int | None:
     """Lê um ID inteiro que ainda não exista na lista. None cancela."""
     while True:
-        try:
-            id = int(input("ID (0 para cancelar): ").strip())
-        except ValueError:
-            print("O ID deve ser um número inteiro.")
-            continue
-        except (EOFError, KeyboardInterrupt):
-            raise SairPrograma
+        id = ler_inteiro("ID (0 para cancelar)")
         if id == 0:                             # cancela o cadastro
             print("Cadastro cancelado.")
             return None
@@ -76,14 +87,14 @@ def cadastrar_registro(lista: ListaEncadeada) -> None:
         id = ler_id(lista)
         if id is None:                          # cancelou o cadastro
             return
-        titulo = ler_texto("Título")
+        titulo = ler_texto("Título", max_len=MAX_TITULO)
         tipo = ler_tipo()
-        categoria = ler_texto("Categoria")
-        descricao = ler_texto("Descrição")
-        requisitos = ler_texto("Requisitos")
-        local = ler_texto("Local")
-        horas = ler_inteiro_positivo("Horas")
-        responsavel = ler_texto("Responsável")
+        categoria = ler_texto("Categoria", max_len=MAX_CATEGORIA)
+        descricao = ler_texto("Descrição", max_len=MAX_DESCRICAO)
+        requisitos = ler_texto("Requisitos", max_len=MAX_REQUISITOS)
+        local = ler_texto("Local", max_len=MAX_LOCAL)
+        horas = ler_inteiro("Horas", minimo=1)
+        responsavel = ler_texto("Responsável", max_len=MAX_RESPONSAVEL)
 
         registro = Registro(id, titulo, tipo, categoria, descricao,
                             requisitos, local, horas, responsavel)
@@ -98,38 +109,25 @@ def cadastrar_registro(lista: ListaEncadeada) -> None:
             break
 
 
-def ler_inteiro(campo: str) -> int | None:
-    """Lê um número inteiro do terminal. None se a entrada for inválida."""
-    try:
-        return int(input(f"{campo}: ").strip())
-    except ValueError:
-        print("Entrada inválida. Digite um número inteiro.")
-        return None
-    except (EOFError, KeyboardInterrupt):
-        raise SairPrograma
-
-
 def consultar_por_id(lista: ListaEncadeada) -> None:
     """Consulta um registro pelo ID e exibe todos os campos."""
-    if len(lista) == 0:                     # lista vazia: avisa antes de pedir
+    if len(lista) == 0:                         # lista vazia
         print("A lista está vazia. Nenhum registro para consultar.")
         return
 
     id = ler_inteiro("ID para consulta")
-    if id is None:                          # entrada inválida: volta ao menu
-        return
     registro = lista.buscar_por_id(id)
     print()
     if registro is None:
         print(f"Registro não encontrado (ID {id}).")
     else:
         print("--- Registro encontrado ---")
-        print(registro)                     # usa o __str__ de Registro
+        print(registro)                         # usa o __str__ de Registro
 
 
 def pesquisar(lista: ListaEncadeada) -> None:
     """Submenu de pesquisa por título ou categoria."""
-    if len(lista) == 0:                     # lista vazia
+    if len(lista) == 0:                         # lista vazia
         print("A lista está vazia. Nenhum registro para pesquisar.")
         return
 
@@ -137,9 +135,7 @@ def pesquisar(lista: ListaEncadeada) -> None:
     print("1 - Por título")
     print("2 - Por categoria")
     print("0 - Voltar")
-    opcao = ler_inteiro("Opção")
-    if opcao is None:                       # entrada inválida: volta ao menu
-        return
+    opcao = ler_inteiro("Opção", 0, 2)
 
     if opcao == 0:
         return
@@ -147,13 +143,10 @@ def pesquisar(lista: ListaEncadeada) -> None:
         termo = ler_texto("Título (termo de busca)")
         print("\n--- Resultado da pesquisa por título ---")
         total = buscar_por_titulo(lista, termo)
-    elif opcao == 2:
+    else:
         termo = ler_texto("Categoria (termo de busca)")
         print("\n--- Resultado da pesquisa por categoria ---")
         total = buscar_por_categoria(lista, termo)
-    else:
-        print("Opção inválida.")
-        return
 
     if total == 0:
         print("Nenhum registro encontrado.")
@@ -162,25 +155,18 @@ def pesquisar(lista: ListaEncadeada) -> None:
         print(f"Total de registros encontrados: {total}")
 
 
-def ler_texto_opcional(campo: str, valor_atual: str) -> str:
+def ler_texto_opcional(campo: str, valor_atual: str, max_len: int) -> str:
     """Lê um texto; Enter mantém o valor atual."""
-    while True:
-        try:
-            valor = input(f"{campo} [{valor_atual}]: ").strip()
-        except (EOFError, KeyboardInterrupt):
-            raise SairPrograma
-        if valor == "":
-            return valor_atual
-        return valor
+    valor = ler_texto(f"{campo} [{valor_atual}]", obrigatorio=False,
+                      max_len=max_len)
+    return valor if valor != "" else valor_atual
 
 
 def ler_tipo_opcional(valor_atual: str) -> str:
     """Lê o tipo; Enter mantém o valor atual."""
     while True:
-        try:
-            valor = input(f"Tipo (Oferta/Pedido/Projeto) [{valor_atual}]: ").strip()
-        except (EOFError, KeyboardInterrupt):
-            raise SairPrograma
+        valor = ler_texto(f"Tipo (Oferta/Pedido/Projeto) [{valor_atual}]",
+                          obrigatorio=False, max_len=MAX_TIPO)
         if valor == "":
             return valor_atual
         if valor in TIPOS_VALIDOS:
@@ -191,10 +177,7 @@ def ler_tipo_opcional(valor_atual: str) -> str:
 def ler_inteiro_positivo_opcional(campo: str, valor_atual: int) -> int:
     """Lê um inteiro > 0; Enter mantém o valor atual."""
     while True:
-        try:
-            valor = input(f"{campo} [{valor_atual}]: ").strip()
-        except (EOFError, KeyboardInterrupt):
-            raise SairPrograma
+        valor = ler_texto(f"{campo} [{valor_atual}]", obrigatorio=False)
         if valor == "":
             return valor_atual
         try:
@@ -210,13 +193,11 @@ def ler_inteiro_positivo_opcional(campo: str, valor_atual: int) -> int:
 
 def atualizar_registro(lista: ListaEncadeada) -> None:
     """Atualiza os campos de um registro existente, preservando o nó."""
-    if len(lista) == 0:                     # lista vazia
+    if len(lista) == 0:                         # lista vazia
         print("A lista está vazia. Nenhum registro para atualizar.")
         return
 
     id = ler_inteiro("ID do registro a atualizar")
-    if id is None:                          # entrada inválida: volta ao menu
-        return
     registro = lista.buscar_por_id(id)
     if registro is None:
         print(f"Registro não encontrado (ID {id}).")
@@ -227,14 +208,18 @@ def atualizar_registro(lista: ListaEncadeada) -> None:
     print("\nPressione Enter para manter o valor atual.")
 
     # altera os campos do próprio registro (o nó e os ponteiros ficam intactos)
-    registro.titulo = ler_texto_opcional("Título", registro.titulo)
+    registro.titulo = ler_texto_opcional("Título", registro.titulo, MAX_TITULO)
     registro.tipo = ler_tipo_opcional(registro.tipo)
-    registro.categoria = ler_texto_opcional("Categoria", registro.categoria)
-    registro.descricao = ler_texto_opcional("Descrição", registro.descricao)
-    registro.requisitos = ler_texto_opcional("Requisitos", registro.requisitos)
-    registro.local = ler_texto_opcional("Local", registro.local)
+    registro.categoria = ler_texto_opcional("Categoria", registro.categoria,
+                                            MAX_CATEGORIA)
+    registro.descricao = ler_texto_opcional("Descrição", registro.descricao,
+                                            MAX_DESCRICAO)
+    registro.requisitos = ler_texto_opcional("Requisitos", registro.requisitos,
+                                             MAX_REQUISITOS)
+    registro.local = ler_texto_opcional("Local", registro.local, MAX_LOCAL)
     registro.horas = ler_inteiro_positivo_opcional("Horas", registro.horas)
-    registro.responsavel = ler_texto_opcional("Responsável", registro.responsavel)
+    registro.responsavel = ler_texto_opcional("Responsável", registro.responsavel,
+                                              MAX_RESPONSAVEL)
 
     print("\nRegistro atualizado com sucesso!")
     print(registro)
@@ -242,15 +227,13 @@ def atualizar_registro(lista: ListaEncadeada) -> None:
 
 def excluir_registro(lista: ListaEncadeada) -> None:
     """Exclui um registro após confirmação do usuário."""
-    if len(lista) == 0:                     # lista vazia
+    if len(lista) == 0:                         # lista vazia
         print("A lista está vazia. Nenhum registro para excluir.")
         return
 
     id = ler_inteiro("ID do registro a excluir")
-    if id is None:                          # entrada inválida: volta ao menu
-        return
     registro = lista.buscar_por_id(id)
-    if registro is None:                    # ID inexistente
+    if registro is None:                        # ID inexistente
         print(f"Registro não encontrado (ID {id}).")
         return
 
@@ -288,15 +271,10 @@ def ordenar_e_exibir(lista: ListaEncadeada) -> None:
     print("2 - Categoria")
     print("3 - Horas (crescente)")
     print("0 - Voltar")
-    opcao = ler_inteiro("Opção")
-    if opcao is None:                           # entrada inválida: volta ao menu
-        return
+    opcao = ler_inteiro("Opção", 0, 3)
 
     criterios = {1: "titulo", 2: "categoria", 3: "horas"}
     if opcao == 0:
-        return
-    if opcao not in criterios:
-        print("Opção inválida.")
         return
 
     ordenar_lista(lista, criterios[opcao])
@@ -374,9 +352,7 @@ def main() -> None:
     try:
         while True:
             exibir_menu()
-            opcao = ler_inteiro("Opção")
-            if opcao is None:                   # entrada inválida: volta ao menu
-                continue
+            opcao = ler_inteiro("Opção", 0, 7)
             if opcao == 0:
                 executar_opcao(lista, opcao)
                 break
