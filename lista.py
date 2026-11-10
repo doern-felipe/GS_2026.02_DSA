@@ -73,6 +73,15 @@ class ListaEncadeada:
             atual = atual.proximo
         return False                                # ID não encontrado
 
+    def buscar_por_id(self, id: int) -> Registro | None:
+        """Retorna o registro com o ID informado ou None se não existir."""
+        atual = self.cabeca
+        while atual is not None:
+            if atual.dados.id == id:
+                return atual.dados
+            atual = atual.proximo
+        return None
+
     def limpar(self) -> None:
         """Zera a lista, desligando cada nó antes de descartá-lo."""
         atual = self.cabeca
