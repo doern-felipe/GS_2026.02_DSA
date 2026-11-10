@@ -47,18 +47,24 @@ def ler_tipo() -> str:
         print("Tipo inválido. Digite Oferta, Pedido ou Projeto.")
 
 
-def ler_id(lista: ListaEncadeada) -> int:
-    """Lê um ID inteiro que ainda não exista na lista."""
+def ler_id(lista: ListaEncadeada) -> int | None:
+    """Lê um ID inteiro que ainda não exista na lista. None cancela."""
     while True:
         try:
-            id = int(input("ID: ").strip())
+            id = int(input("ID (0 para cancelar): ").strip())
         except ValueError:
             print("O ID deve ser um número inteiro.")
             continue
         except (EOFError, KeyboardInterrupt):
             raise SairPrograma
-        if lista.buscar_por_id(id) is not None:
-            print(f"O ID {id} já existe. Escolha outro.")
+        if id == 0:                             # cancela o cadastro
+            print("Cadastro cancelado.")
+            return None
+        existente = lista.buscar_por_id(id)
+        if existente is not None:               # ID duplicado
+            print(f"O ID {id} já é usado pelo registro abaixo:")
+            print(existente)
+            print("Tente outro ID ou digite 0 para cancelar.")
             continue
         return id
 
@@ -68,6 +74,8 @@ def cadastrar_registro(lista: ListaEncadeada) -> None:
     while True:
         print("\n--- Cadastro de Registro ---")
         id = ler_id(lista)
+        if id is None:                          # cancelou o cadastro
+            return
         titulo = ler_texto("Título")
         tipo = ler_tipo()
         categoria = ler_texto("Categoria")
@@ -90,15 +98,15 @@ def cadastrar_registro(lista: ListaEncadeada) -> None:
             break
 
 
-def ler_inteiro(campo: str) -> int:
-    """Lê um número inteiro do terminal."""
-    while True:
-        try:
-            return int(input(f"{campo}: ").strip())
-        except ValueError:
-            print(f"O campo '{campo}' deve ser um número inteiro.")
-        except (EOFError, KeyboardInterrupt):
-            raise SairPrograma
+def ler_inteiro(campo: str) -> int | None:
+    """Lê um número inteiro do terminal. None se a entrada for inválida."""
+    try:
+        return int(input(f"{campo}: ").strip())
+    except ValueError:
+        print("Entrada inválida. Digite um número inteiro.")
+        return None
+    except (EOFError, KeyboardInterrupt):
+        raise SairPrograma
 
 
 def consultar_por_id(lista: ListaEncadeada) -> None:
@@ -108,6 +116,8 @@ def consultar_por_id(lista: ListaEncadeada) -> None:
         return
 
     id = ler_inteiro("ID para consulta")
+    if id is None:                          # entrada inválida: volta ao menu
+        return
     registro = lista.buscar_por_id(id)
     print()
     if registro is None:
@@ -128,6 +138,8 @@ def pesquisar(lista: ListaEncadeada) -> None:
     print("2 - Por categoria")
     print("0 - Voltar")
     opcao = ler_inteiro("Opção")
+    if opcao is None:                       # entrada inválida: volta ao menu
+        return
 
     if opcao == 0:
         return
@@ -203,6 +215,8 @@ def atualizar_registro(lista: ListaEncadeada) -> None:
         return
 
     id = ler_inteiro("ID do registro a atualizar")
+    if id is None:                          # entrada inválida: volta ao menu
+        return
     registro = lista.buscar_por_id(id)
     if registro is None:
         print(f"Registro não encontrado (ID {id}).")
@@ -233,6 +247,8 @@ def excluir_registro(lista: ListaEncadeada) -> None:
         return
 
     id = ler_inteiro("ID do registro a excluir")
+    if id is None:                          # entrada inválida: volta ao menu
+        return
     registro = lista.buscar_por_id(id)
     if registro is None:                    # ID inexistente
         print(f"Registro não encontrado (ID {id}).")
@@ -273,6 +289,8 @@ def ordenar_e_exibir(lista: ListaEncadeada) -> None:
     print("3 - Horas (crescente)")
     print("0 - Voltar")
     opcao = ler_inteiro("Opção")
+    if opcao is None:                           # entrada inválida: volta ao menu
+        return
 
     criterios = {1: "titulo", 2: "categoria", 3: "horas"}
     if opcao == 0:
@@ -315,7 +333,7 @@ def analise(lista: ListaEncadeada) -> None:
 def exibir_menu() -> None:
     """Exibe o menu principal."""
     print("\n" + "=" * 50)
-    print("TEMPO VALE - Banco de tempo e serviços comunitários")
+    print("COLABRE - Banco de tempo e serviços comunitários")
     print("=" * 50)
     print("1 - Cadastrar registro")
     print("2 - Consultar por ID")
@@ -345,7 +363,7 @@ def executar_opcao(lista: ListaEncadeada, opcao: int) -> None:
     elif opcao == 7:
         analise(lista)
     elif opcao == 0:
-        print("Encerrando o programa. Obrigado por usar o Tempo Vale!")
+        print("Encerrando o programa. Obrigado por usar o Colabre!")
     else:
         print("Opção inválida. Tente novamente.")
 
@@ -357,11 +375,13 @@ def main() -> None:
         while True:
             exibir_menu()
             opcao = ler_inteiro("Opção")
+            if opcao is None:                   # entrada inválida: volta ao menu
+                continue
             if opcao == 0:
                 executar_opcao(lista, opcao)
                 break
             executar_opcao(lista, opcao)
     except SairPrograma:
-        print("\nEncerrando o programa. Obrigado por usar o Tempo Vale!")
+        print("\nEncerrando o programa. Obrigado por usar o Colabre!")
     except (KeyboardInterrupt, EOFError):
-        print("\nEncerrando o programa. Obrigado por usar o Tempo Vale!")
+        print("\nEncerrando o programa. Obrigado por usar o Colabre!")

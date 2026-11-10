@@ -1,5 +1,5 @@
 class Registro:
-    """Representa um registro do banco de tempo 'Tempo Vale'."""
+    """Representa um registro do banco de tempo 'Colabre'."""
 
     def __init__(self, id: int, titulo: str, tipo: str, categoria: str,
                  descricao: str, requisitos: str, local: str,
