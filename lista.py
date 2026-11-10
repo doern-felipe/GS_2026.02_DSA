@@ -30,7 +30,7 @@ class ListaEncadeada:
         return True
 
     def imprimir_lista(self) -> None:
-        """Percorre os nos com um laço while e exibe cada registro."""
+        """Percorre os nós com um laço while e exibe cada registro."""
         if self.cabeca is None:                 # lista vazia
             print("A lista está vazia. Nenhum registro cadastrado.")
             return
@@ -73,6 +73,20 @@ class ListaEncadeada:
             atual = atual.proximo
         return False                                # ID não encontrado
 
+    def limpar(self) -> None:
+        """Zera a lista, desligando cada nó antes de descartá-lo."""
+        atual = self.cabeca
+        while atual is not None:
+            proximo = atual.proximo     # guarda o próximo antes de desligar
+            atual.proximo = None        # desliga o nó corrente
+            atual = proximo             # avança
+        self.cabeca = None              # lista vazia
+        self.tamanho = 0
+
+    def __len__(self) -> int:
+        """Retorna a quantidade de nós da lista."""
+        return self.tamanho
+
 
 if __name__ == "__main__":
     lista = ListaEncadeada()
@@ -83,6 +97,7 @@ if __name__ == "__main__":
 
     print("Lista inicial:")
     lista.imprimir_lista()                          # 1 2 3 4 5
+    print("Tamanho (__len__):", len(lista))         # 5
 
     print("\nRemovendo a CABEÇA (id 1):", lista.remover_por_id(1))
     lista.imprimir_lista()                          # 2 3 4 5
@@ -94,3 +109,8 @@ if __name__ == "__main__":
     lista.imprimir_lista()                          # 2 4
 
     print("\nRemovendo ID inexistente (id 99):", lista.remover_por_id(99))
+
+    print("\nLimpando a lista:")
+    lista.limpar()
+    lista.imprimir_lista()                          # lista vazia
+    print("Tamanho após limpar:", len(lista))       # 0
