@@ -148,3 +148,82 @@ def pesquisar(lista: ListaEncadeada) -> None:
     else:
         print("-" * 50)
         print(f"Total de registros encontrados: {total}")
+
+
+def ler_texto_opcional(campo: str, valor_atual: str) -> str:
+    """Lê um texto; Enter mantém o valor atual."""
+    while True:
+        try:
+            valor = input(f"{campo} [{valor_atual}]: ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print("\nEntrada interrompida. Tente novamente.")
+            continue
+        if valor == "":
+            return valor_atual
+        return valor
+
+
+def ler_tipo_opcional(valor_atual: str) -> str:
+    """Lê o tipo; Enter mantém o valor atual."""
+    while True:
+        try:
+            valor = input(f"Tipo (Oferta/Pedido/Projeto) [{valor_atual}]: ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print("\nEntrada interrompida. Tente novamente.")
+            continue
+        if valor == "":
+            return valor_atual
+        if valor in TIPOS_VALIDOS:
+            return valor
+        print("Tipo inválido. Digite Oferta, Pedido ou Projeto.")
+
+
+def ler_inteiro_positivo_opcional(campo: str, valor_atual: int) -> int:
+    """Lê um inteiro > 0; Enter mantém o valor atual."""
+    while True:
+        try:
+            valor = input(f"{campo} [{valor_atual}]: ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print("\nEntrada interrompida. Tente novamente.")
+            continue
+        if valor == "":
+            return valor_atual
+        try:
+            numero = int(valor)
+        except ValueError:
+            print(f"O campo '{campo}' deve ser um número inteiro.")
+            continue
+        if numero <= 0:
+            print(f"O campo '{campo}' deve ser maior que zero.")
+            continue
+        return numero
+
+
+def atualizar_registro(lista: ListaEncadeada) -> None:
+    """Atualiza os campos de um registro existente, preservando o nó."""
+    if len(lista) == 0:                     # lista vazia
+        print("A lista está vazia. Nenhum registro para atualizar.")
+        return
+
+    id = ler_inteiro("ID do registro a atualizar")
+    registro = lista.buscar_por_id(id)
+    if registro is None:
+        print(f"Registro não encontrado (ID {id}).")
+        return
+
+    print("\n--- Registro atual ---")
+    print(registro)
+    print("\nPressione Enter para manter o valor atual.")
+
+    # altera os campos do próprio registro (o nó e os ponteiros ficam intactos)
+    registro.titulo = ler_texto_opcional("Título", registro.titulo)
+    registro.tipo = ler_tipo_opcional(registro.tipo)
+    registro.categoria = ler_texto_opcional("Categoria", registro.categoria)
+    registro.descricao = ler_texto_opcional("Descrição", registro.descricao)
+    registro.requisitos = ler_texto_opcional("Requisitos", registro.requisitos)
+    registro.local = ler_texto_opcional("Local", registro.local)
+    registro.horas = ler_inteiro_positivo_opcional("Horas", registro.horas)
+    registro.responsavel = ler_texto_opcional("Responsável", registro.responsavel)
+
+    print("\nRegistro atualizado com sucesso!")
+    print(registro)
