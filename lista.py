@@ -29,6 +29,24 @@ class ListaEncadeada:
         self.tamanho += 1
         return True
 
+    def imprimir_lista(self) -> None:
+        """Percorre os nos com um laço while e exibe cada registro."""
+        if self.cabeca is None:                 # lista vazia
+            print("A lista está vazia. Nenhum registro cadastrado.")
+            return
+
+        atual = self.cabeca                     # começa no primeiro nó
+        print("=" * 50)
+        print("REGISTROS CADASTRADOS")
+        print("=" * 50)
+        while atual is not None:                # enquanto houver nó
+            print("-" * 50)
+            print(atual.dados)                  # usa o __str__ de Registro
+            atual = atual.proximo               # avança para o próximo nó
+        print("-" * 50)
+        print(f"Total de registros: {self.tamanho}")
+        print("=" * 50)
+
 
 if __name__ == "__main__":
     lista = ListaEncadeada()
