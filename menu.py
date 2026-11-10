@@ -2,8 +2,11 @@ from registro import Registro
 from lista import ListaEncadeada
 from algoritmos import buscar_por_categoria, buscar_por_titulo, ordenar_lista
 
-
 TIPOS_VALIDOS = ("Oferta", "Pedido", "Projeto")
+
+
+class SairPrograma(Exception):
+    """Sinaliza que o usuário quer encerrar o programa (Ctrl+C/Ctrl+D)."""
 
 
 def ler_texto(campo: str) -> str:
@@ -12,8 +15,7 @@ def ler_texto(campo: str) -> str:
         try:
             valor = input(f"{campo}: ").strip()
         except (EOFError, KeyboardInterrupt):
-            print("\nEntrada interrompida. Tente novamente.")
-            continue
+            raise SairPrograma
         if valor == "":
             print(f"O campo '{campo}' não pode ficar vazio.")
             continue
@@ -29,8 +31,7 @@ def ler_inteiro_positivo(campo: str) -> int:
             print(f"O campo '{campo}' deve ser um número inteiro.")
             continue
         except (EOFError, KeyboardInterrupt):
-            print("\nEntrada interrompida. Tente novamente.")
-            continue
+            raise SairPrograma
         if valor <= 0:
             print(f"O campo '{campo}' deve ser maior que zero.")
             continue
@@ -55,8 +56,7 @@ def ler_id(lista: ListaEncadeada) -> int:
             print("O ID deve ser um número inteiro.")
             continue
         except (EOFError, KeyboardInterrupt):
-            print("\nEntrada interrompida. Tente novamente.")
-            continue
+            raise SairPrograma
         if lista.buscar_por_id(id) is not None:
             print(f"O ID {id} já existe. Escolha outro.")
             continue
@@ -85,10 +85,10 @@ def cadastrar_registro(lista: ListaEncadeada) -> None:
         try:
             resposta = input("Cadastrar outro? (s/n): ").strip().lower()
         except (EOFError, KeyboardInterrupt):
-            print("\nEntrada interrompida. Encerrando cadastro.")
-            break
+            raise SairPrograma
         if resposta != "s":
             break
+
 
 def ler_inteiro(campo: str) -> int:
     """Lê um número inteiro do terminal."""
@@ -98,7 +98,7 @@ def ler_inteiro(campo: str) -> int:
         except ValueError:
             print(f"O campo '{campo}' deve ser um número inteiro.")
         except (EOFError, KeyboardInterrupt):
-            print("\nEntrada interrompida. Tente novamente.")
+            raise SairPrograma
 
 
 def consultar_por_id(lista: ListaEncadeada) -> None:
@@ -156,8 +156,7 @@ def ler_texto_opcional(campo: str, valor_atual: str) -> str:
         try:
             valor = input(f"{campo} [{valor_atual}]: ").strip()
         except (EOFError, KeyboardInterrupt):
-            print("\nEntrada interrompida. Tente novamente.")
-            continue
+            raise SairPrograma
         if valor == "":
             return valor_atual
         return valor
@@ -169,8 +168,7 @@ def ler_tipo_opcional(valor_atual: str) -> str:
         try:
             valor = input(f"Tipo (Oferta/Pedido/Projeto) [{valor_atual}]: ").strip()
         except (EOFError, KeyboardInterrupt):
-            print("\nEntrada interrompida. Tente novamente.")
-            continue
+            raise SairPrograma
         if valor == "":
             return valor_atual
         if valor in TIPOS_VALIDOS:
@@ -184,8 +182,7 @@ def ler_inteiro_positivo_opcional(campo: str, valor_atual: int) -> int:
         try:
             valor = input(f"{campo} [{valor_atual}]: ").strip()
         except (EOFError, KeyboardInterrupt):
-            print("\nEntrada interrompida. Tente novamente.")
-            continue
+            raise SairPrograma
         if valor == "":
             return valor_atual
         try:
@@ -247,8 +244,7 @@ def excluir_registro(lista: ListaEncadeada) -> None:
     try:
         resposta = input("\nConfirmar exclusão? (s/n): ").strip().lower()
     except (EOFError, KeyboardInterrupt):
-        print("\nEntrada interrompida. Exclusão cancelada.")
-        return
+        raise SairPrograma
 
     if resposta != "s":
         print("Exclusão cancelada.")
@@ -288,3 +284,84 @@ def ordenar_e_exibir(lista: ListaEncadeada) -> None:
     ordenar_lista(lista, criterios[opcao])
     print(f"\nLista ordenada por {criterios[opcao]}:")
     lista.imprimir_lista()
+
+
+def analise(lista: ListaEncadeada) -> None:
+    """Percorre a lista e exibe totais e contagem por categoria."""
+    if len(lista) == 0:                         # lista vazia
+        print("A lista está vazia. Nenhuma análise a fazer.")
+        return
+
+    total_registros = 0
+    total_horas = 0
+    categorias = {}                             # conta categorias só aqui
+
+    atual = lista.cabeca
+    while atual is not None:
+        total_registros += 1
+        total_horas += atual.dados.horas
+        categoria = atual.dados.categoria
+        categorias[categoria] = categorias.get(categoria, 0) + 1
+        atual = atual.proximo
+
+    print("\n--- Análise do banco de tempo ---")
+    print(f"Total de registros: {total_registros}")
+    print(f"Total de horas (créditos): {total_horas}")
+    print("Registros por categoria:")
+    for categoria, quantidade in categorias.items():
+        print(f"  {categoria}: {quantidade}")
+
+
+def exibir_menu() -> None:
+    """Exibe o menu principal."""
+    print("\n" + "=" * 50)
+    print("TEMPO VALE - Banco de tempo e serviços comunitários")
+    print("=" * 50)
+    print("1 - Cadastrar registro")
+    print("2 - Consultar por ID")
+    print("3 - Pesquisar")
+    print("4 - Atualizar registro")
+    print("5 - Excluir registro")
+    print("6 - Ordenar e exibir")
+    print("7 - Análise")
+    print("0 - Sair")
+    print("=" * 50)
+
+
+def executar_opcao(lista: ListaEncadeada, opcao: int) -> None:
+    """Executa a opção escolhida no menu."""
+    if opcao == 1:
+        cadastrar_registro(lista)
+    elif opcao == 2:
+        consultar_por_id(lista)
+    elif opcao == 3:
+        pesquisar(lista)
+    elif opcao == 4:
+        atualizar_registro(lista)
+    elif opcao == 5:
+        excluir_registro(lista)
+    elif opcao == 6:
+        ordenar_e_exibir(lista)
+    elif opcao == 7:
+        analise(lista)
+    elif opcao == 0:
+        print("Encerrando o programa. Obrigado por usar o Tempo Vale!")
+    else:
+        print("Opção inválida. Tente novamente.")
+
+
+def main() -> None:
+    """Loop principal do menu."""
+    lista = ListaEncadeada()
+    try:
+        while True:
+            exibir_menu()
+            opcao = ler_inteiro("Opção")
+            if opcao == 0:
+                executar_opcao(lista, opcao)
+                break
+            executar_opcao(lista, opcao)
+    except SairPrograma:
+        print("\nEncerrando o programa. Obrigado por usar o Tempo Vale!")
+    except (KeyboardInterrupt, EOFError):
+        print("\nEncerrando o programa. Obrigado por usar o Tempo Vale!")
