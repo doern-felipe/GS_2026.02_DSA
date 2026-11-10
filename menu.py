@@ -87,3 +87,29 @@ def cadastrar_registro(lista: ListaEncadeada) -> None:
             break
         if resposta != "s":
             break
+
+def ler_inteiro(campo: str) -> int:
+    """Lê um número inteiro do terminal."""
+    while True:
+        try:
+            return int(input(f"{campo}: ").strip())
+        except ValueError:
+            print(f"O campo '{campo}' deve ser um número inteiro.")
+        except (EOFError, KeyboardInterrupt):
+            print("\nEntrada interrompida. Tente novamente.")
+
+
+def consultar_por_id(lista: ListaEncadeada) -> None:
+    """Consulta um registro pelo ID e exibe todos os campos."""
+    if len(lista) == 0:                     # lista vazia: avisa antes de pedir
+        print("A lista está vazia. Nenhum registro para consultar.")
+        return
+
+    id = ler_inteiro("ID para consulta")
+    registro = lista.buscar_por_id(id)
+    print()
+    if registro is None:
+        print(f"Registro não encontrado (ID {id}).")
+    else:
+        print("--- Registro encontrado ---")
+        print(registro)                     # usa o __str__ de Registro
