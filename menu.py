@@ -1,6 +1,6 @@
 from registro import Registro
 from lista import ListaEncadeada
-from algoritmos import buscar_por_categoria, buscar_por_titulo
+from algoritmos import buscar_por_categoria, buscar_por_titulo, ordenar_lista
 
 
 TIPOS_VALIDOS = ("Oferta", "Pedido", "Projeto")
@@ -227,3 +227,64 @@ def atualizar_registro(lista: ListaEncadeada) -> None:
 
     print("\nRegistro atualizado com sucesso!")
     print(registro)
+
+
+def excluir_registro(lista: ListaEncadeada) -> None:
+    """Exclui um registro após confirmação do usuário."""
+    if len(lista) == 0:                     # lista vazia
+        print("A lista está vazia. Nenhum registro para excluir.")
+        return
+
+    id = ler_inteiro("ID do registro a excluir")
+    registro = lista.buscar_por_id(id)
+    if registro is None:                    # ID inexistente
+        print(f"Registro não encontrado (ID {id}).")
+        return
+
+    print("\n--- Registro a excluir ---")
+    print(registro)
+
+    try:
+        resposta = input("\nConfirmar exclusão? (s/n): ").strip().lower()
+    except (EOFError, KeyboardInterrupt):
+        print("\nEntrada interrompida. Exclusão cancelada.")
+        return
+
+    if resposta != "s":
+        print("Exclusão cancelada.")
+        return
+
+    if lista.remover_por_id(id):
+        print("Registro excluído com sucesso!")
+    else:
+        print(f"Não foi possível excluir o registro (ID {id}).")
+
+
+def ordenar_e_exibir(lista: ListaEncadeada) -> None:
+    """Submenu de ordenação e exibição da lista."""
+    if len(lista) == 0:                         # lista vazia
+        print("A lista está vazia. Nenhum registro para ordenar.")
+        lista.imprimir_lista()
+        return
+    if len(lista) == 1:                         # só um registro
+        print("A lista tem apenas um registro; nada a ordenar.")
+        lista.imprimir_lista()
+        return
+
+    print("\n--- Ordenar e exibir ---")
+    print("1 - Título (A-Z)")
+    print("2 - Categoria")
+    print("3 - Horas (crescente)")
+    print("0 - Voltar")
+    opcao = ler_inteiro("Opção")
+
+    criterios = {1: "titulo", 2: "categoria", 3: "horas"}
+    if opcao == 0:
+        return
+    if opcao not in criterios:
+        print("Opção inválida.")
+        return
+
+    ordenar_lista(lista, criterios[opcao])
+    print(f"\nLista ordenada por {criterios[opcao]}:")
+    lista.imprimir_lista()
