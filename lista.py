@@ -47,25 +47,50 @@ class ListaEncadeada:
         print(f"Total de registros: {self.tamanho}")
         print("=" * 50)
 
+    def remover_por_id(self, id: int) -> bool:
+        """Remove o nó com o ID informado. Retorna True se removeu."""
+        if self.cabeca is None:                     # lista vazia
+            return False
+
+        # Caso 1: remoção da cabeça
+        if self.cabeca.dados.id == id:
+            removido = self.cabeca
+            self.cabeca = self.cabeca.proximo       # cabeça vira o próximo
+            removido.proximo = None                 # desliga o nó removido
+            self.tamanho -= 1
+            return True
+
+        # Caso 2: remoção do meio ou do fim
+        anterior = self.cabeca
+        atual = self.cabeca.proximo
+        while atual is not None:
+            if atual.dados.id == id:
+                anterior.proximo = atual.proximo    # pula o nó removido
+                atual.proximo = None                # desliga o nó removido
+                self.tamanho -= 1
+                return True
+            anterior = atual                        # avança os dois ponteiros
+            atual = atual.proximo
+        return False                                # ID não encontrado
+
 
 if __name__ == "__main__":
     lista = ListaEncadeada()
+    for i in range(1, 6):
+        lista.inserir_fim(Registro(i, f"Registro {i}", "Oferta", "Educação",
+                                   "Descrição", "Requisitos", "Local", i,
+                                   f"Responsável {i}"))
 
-    r1 = Registro(1, "Aula de reforço", "Oferta", "Educação",
-                  "Reforço de matemática", "Saber ler", "Biblioteca", 2, "Ana")
-    r2 = Registro(2, "Consertar torneira", "Pedido", "Manutenção",
-                  "Torneira da cozinha vazando", "Trazer chave", "Casa da Maria",
-                  1, "Maria")
-    r3 = Registro(3, "Horta comunitária", "Projeto", "Horta",
-                  "Plantio coletivo", "Disponibilidade aos sábados",
-                  "Praça Central", 4, "Carlos")
+    print("Lista inicial:")
+    lista.imprimir_lista()                          # 1 2 3 4 5
 
-    print(lista.inserir_fim(r1))  # True
-    print(lista.inserir_fim(r2))  # True
-    print(lista.inserir_fim(r3))  # True
-    print("Tamanho:", lista.tamanho)  # 3
+    print("\nRemovendo a CABEÇA (id 1):", lista.remover_por_id(1))
+    lista.imprimir_lista()                          # 2 3 4 5
 
-    atual = lista.cabeca
-    while atual is not None:
-        print(atual.dados.titulo)
-        atual = atual.proximo
+    print("\nRemovendo o MEIO (id 3):", lista.remover_por_id(3))
+    lista.imprimir_lista()                          # 2 4 5
+
+    print("\nRemovendo o FIM (id 5):", lista.remover_por_id(5))
+    lista.imprimir_lista()                          # 2 4
+
+    print("\nRemovendo ID inexistente (id 99):", lista.remover_por_id(99))
