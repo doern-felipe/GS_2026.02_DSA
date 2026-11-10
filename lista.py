@@ -15,3 +15,39 @@ class ListaEncadeada:
     def __init__(self) -> None:
         self.cabeca = None      # primeiro nó (None se a lista estiver vazia)
         self.tamanho = 0        # quantidade de nós na lista
+
+    def inserir_fim(self, registro: Registro) -> bool:
+        """Insere o registro no fim da lista. Retorna True se inseriu."""
+        novo_no = No(registro)          # cria o nó já com proximo = None
+        if self.cabeca is None:         # lista vazia: novo nó vira a cabeça
+            self.cabeca = novo_no
+        else:                           # percorre até o último nó
+            atual = self.cabeca
+            while atual.proximo is not None:
+                atual = atual.proximo
+            atual.proximo = novo_no     # último nó aponta para o novo
+        self.tamanho += 1
+        return True
+
+
+if __name__ == "__main__":
+    lista = ListaEncadeada()
+
+    r1 = Registro(1, "Aula de reforço", "Oferta", "Educação",
+                  "Reforço de matemática", "Saber ler", "Biblioteca", 2, "Ana")
+    r2 = Registro(2, "Consertar torneira", "Pedido", "Manutenção",
+                  "Torneira da cozinha vazando", "Trazer chave", "Casa da Maria",
+                  1, "Maria")
+    r3 = Registro(3, "Horta comunitária", "Projeto", "Horta",
+                  "Plantio coletivo", "Disponibilidade aos sábados",
+                  "Praça Central", 4, "Carlos")
+
+    print(lista.inserir_fim(r1))  # True
+    print(lista.inserir_fim(r2))  # True
+    print(lista.inserir_fim(r3))  # True
+    print("Tamanho:", lista.tamanho)  # 3
+
+    atual = lista.cabeca
+    while atual is not None:
+        print(atual.dados.titulo)
+        atual = atual.proximo
