@@ -1,5 +1,7 @@
 from registro import Registro
 from lista import ListaEncadeada
+from algoritmos import buscar_por_categoria, buscar_por_titulo
+
 
 TIPOS_VALIDOS = ("Oferta", "Pedido", "Projeto")
 
@@ -113,3 +115,36 @@ def consultar_por_id(lista: ListaEncadeada) -> None:
     else:
         print("--- Registro encontrado ---")
         print(registro)                     # usa o __str__ de Registro
+
+
+def pesquisar(lista: ListaEncadeada) -> None:
+    """Submenu de pesquisa por título ou categoria."""
+    if len(lista) == 0:                     # lista vazia
+        print("A lista está vazia. Nenhum registro para pesquisar.")
+        return
+
+    print("\n--- Pesquisar ---")
+    print("1 - Por título")
+    print("2 - Por categoria")
+    print("0 - Voltar")
+    opcao = ler_inteiro("Opção")
+
+    if opcao == 0:
+        return
+    if opcao == 1:
+        termo = ler_texto("Título (termo de busca)")
+        print("\n--- Resultado da pesquisa por título ---")
+        total = buscar_por_titulo(lista, termo)
+    elif opcao == 2:
+        termo = ler_texto("Categoria (termo de busca)")
+        print("\n--- Resultado da pesquisa por categoria ---")
+        total = buscar_por_categoria(lista, termo)
+    else:
+        print("Opção inválida.")
+        return
+
+    if total == 0:
+        print("Nenhum registro encontrado.")
+    else:
+        print("-" * 50)
+        print(f"Total de registros encontrados: {total}")
