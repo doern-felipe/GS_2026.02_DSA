@@ -1,37 +1,155 @@
-# O Tempo Vale — Protótipo Web (MVP)
+# Colabre — Citizen Assist AI
 
-Plataforma de colaboração comunitária onde **1 hora de contribuição = 1 crédito de tempo**.
+Projeto da disciplina **Data Structures and Algorithms (DSA)** — FIAP, feito em
+**Python 3.10+**.
 
-## Como executar
-**Opção 1 (recomendada):** Dê um duplo clique em `index.html` — a plataforma abre direto no navegador, sem instalar nada (o projeto usa `js/bundle.js`, script clássico compatível com arquivo local).
-**Opção 2:** Sirva a pasta com um servidor estático (ex.: `python -m http.server 8080` nesta pasta) e acesse `http://localhost:8080/`.
-3. Entre com a conta demo: **demo@tempovale.com** (qualquer senha), botão **Acessar demonstração** ou **Continuar como visitante**.
+## 1. Recorte
 
-## Estrutura
+**Colabre** é um banco de tempo e serviços comunitários. Cada registro é uma
+**Oferta** de ajuda, um **Pedido** de ajuda ou um **Projeto** comunitário, e
+**1 hora de ajuda equivale a 1 crédito**.
+
+O problema: organizar, consultar, atualizar, excluir, pesquisar e ordenar as
+ofertas, pedidos e projetos da comunidade, permitindo que o cidadão encontre
+ajuda e se reconheça como parte da rede.
+
+O cidadão atendido: qualquer morador da comunidade que queira oferecer
+conhecimento/tempo (ex.: aulas de reforço, consertos, culinária, horta) ou
+precisa pedir ajuda.
+
+Sobre o nome: o **"AI"** é um **assistente de organização e busca** — ele
+estrutura os dados em uma lista encadeada e localiza registros. **Não** é usada
+IA generativa.
+
+## 2. Como executar
+
+Requisito: **Python 3.10 ou superior**.
+
+```bash
+python main.py
 ```
-index.html
-css/styles.css        — Design system (paleta #F8F7F4 / #3D5145 / #CC5500, Manrope)
-css/responsive.css    — 1024 / 768 / 420px (sidebar desktop, bottom nav mobile com 5 itens)
-js/bundle.js         — Bundle clássico gerado (data + storage + módulos + app, sem imports)
-js/data.js            — Seed: 8 usuários, 12 oportunidades, 4 projetos, 8 notificações, 10 lançamentos
-js/storage.js         — Persistência localStorage + reset
-js/app.js             — SPA (hash router, telas, ações) — versão modular para servidor HTTP
-js/modules/
-  utils.js            — formatadores, toast, modal
-  credits.js          — saldo, histórico, transferência única após confirmação mútua
-  opportunities.js    — busca, filtros, ordenação
-  projects.js         — progresso e filtros de projetos
-  notifications.js    — avisos e não-lidas
+
+Funciona em **Windows** e **Linux** (o projeto só usa a biblioteca padrão).
+
+Ambiente virtual (opcional):
+
+```bash
+python -m venv .venv
+# Windows
+.venv\Scripts\activate
+# Linux
+source .venv/bin/activate
+python main.py
 ```
 
-## Fluxo demonstrável
-Explorar → abrir “Aula de inglês para iniciantes” → Tenho interesse → (Minhas atividades) Aceitar/Confirmar → Marcar como realizada → Confirmar horas (mútua) → carteira atualizada → Projetos → participar em “Nossa Praça, Nosso Espaço” → contador e progresso atualizados.
+Testes (quando existirem):
 
-## Regras implementadas
-- Créditos nunca movimentam só por interesse; exigem conclusão + confirmação dos dois lados (status `Aguardando confirmação` até lá) e movimentam **uma única vez** (`activity.credited`).
-- Projetos: progresso = horas confirmadas / meta; responsável registra horas e atualizações.
-- Perfil: nível por atividades/consistência/avaliações (não só saldo).
-- Restaurar dados: **Configurações → Restaurar dados demonstrativos**.
+```bash
+python -m unittest -v
+```
 
-## Nota de segurança
-Autenticação e persistência são **apenas demonstrativas** (localStorage). Não use localStorage para dados sensíveis em produção; substitua por API/banco de dados na evolução para app.
+## 3. Estrutura de pastas
+
+```
+.
+├── main.py            # ponto de entrada
+├── registro.py        # classe Registro
+├── lista.py           # classes No e ListaEncadeada
+├── algoritmos.py      # busca linear e Selection Sort
+├── menu.py            # menu, leituras e validações
+└── docs/
+    ├── algoritmos.md  # busca linear e Selection Sort
+    └── testes.md      # plano e evidências de teste
+```
+
+## 4. Modelo dos registros
+
+A classe `Registro` (em `registro.py`) tem os campos abaixo.
+
+| Campo | Tipo | Obrigatório | Validação |
+|-------|------|-------------|-----------|
+| `id` | `int` | Sim | Único; não negativo (`minimo=0`); `0` cancela o cadastro |
+| `titulo` | `str` | Sim | Não vazio; até 100 caracteres |
+| `tipo` | `str` | Sim | `Oferta`, `Pedido` ou `Projeto` (aceita qualquer caixa, ex.: `"oferta"`, `"PEDIDO"`) |
+| `categoria` | `str` | Sim | Não vazio; até 50 caracteres |
+| `descricao` | `str` | Sim | Não vazio; até 200 caracteres |
+| `requisitos` | `str` | Sim | Não vazio; até 150 caracteres |
+| `local` | `str` | Sim | Não vazio; até 100 caracteres |
+| `horas` | `int` | Sim | Inteiro maior que zero |
+| `responsavel` | `str` | Sim | Não vazio; até 60 caracteres |
+
+Exemplo de 3 registros:
+
+| ID | Título | Tipo | Categoria | Horas | Responsável |
+|----|--------|------|-----------|-------|-------------|
+| 1 | Aula de reforço de matemática | Oferta | Educação | 2 | Ana |
+| 2 | Consertar torneira da cozinha | Pedido | Manutenção | 1 | Maria |
+| 3 | Horta comunitária na praça | Projeto | Horta | 4 | Carlos |
+
+## 5. Lista encadeada
+
+Os registros ficam **exclusivamente** em uma lista encadeada simples,
+implementada em `lista.py`:
+
+- `No` — guarda `dados` (um `Registro`) e a referência `proximo` para o próximo
+  nó (`None` no fim).
+- `ListaEncadeada` — guarda `cabeca` (primeiro nó) e `tamanho` (quantidade de
+  nós). **Não** tem referência para a cauda.
+
+Operações:
+
+| Operação | Descrição |
+|----------|-----------|
+| `inserir_fim(registro)` | Insere um nó no fim, percorrendo a lista |
+| `imprimir_lista()` | Percorre os nós e exibe cada registro |
+| `remover_por_id(id)` | Remove o nó com o ID informado |
+| `buscar_por_id(id)` | Retorna o registro com o ID ou `None` |
+| `limpar()` | Zera a lista, desligando cada nó |
+| `__len__()` | Retorna `tamanho` |
+
+Diagrama:
+
+```mermaid
+flowchart LR
+    C["cabeca"] --> N1["Nó 1<br/>dados: Registro 1<br/>proximo →"]
+    N1 --> N2["Nó 2<br/>dados: Registro 2<br/>proximo →"]
+    N2 --> N3["Nó 3<br/>dados: Registro 3<br/>proximo → None"]
+```
+
+### Integridade na remoção
+
+A remoção é feita movendo as referências e **desligando o nó removido**
+(`proximo = None`), sem quebrar a cadeia:
+
+- **Cabeça:** `cabeca` passa a apontar para `cabeca.proximo`; o nó removido tem
+  `proximo = None`.
+- **Meio:** `anterior.proximo` recebe `atual.proximo`; o nó removido tem
+  `proximo = None`.
+- **Fim:** `anterior.proximo` recebe `None` (o `proximo` do nó removido); o nó
+  removido tem `proximo = None`.
+
+Em todos os casos, `tamanho` é decrementado e os demais nós permanecem ligados.
+
+## 6. Menu
+
+Menu principal (em `menu.py`):
+
+| Opção | O que faz | Validações | Função chamada |
+|-------|-----------|------------|----------------|
+| 1 | Cadastrar registro | ID único e não negativo; campos obrigatórios e com limite; tipo válido; horas > 0; `0` cancela | `cadastrar_registro` |
+| 2 | Consultar por ID | Lista não vazia; ID inteiro | `consultar_por_id` |
+| 3 | Pesquisar por título ou categoria | Lista não vazia; opção 0–2; termo não vazio | `pesquisar` |
+| 4 | Atualizar registro | Lista não vazia; ID inteiro; novos valores revalidados; `Enter` mantém o valor | `atualizar_registro` |
+| 5 | Excluir registro | Lista não vazia; ID inteiro; confirmação `s/n` | `excluir_registro` |
+| 6 | Ordenar e exibir | Lista com 0 ou 1 registro é avisada; opção 0–3 | `ordenar_e_exibir` |
+| 7 | Análise | Lista não vazia; conta registros, horas e categorias | `analise` |
+| 0 | Sair | — | `executar_opcao` |
+
+A opção do menu é lida por `ler_opcao_menu()`, que aceita apenas **0 a 7** e
+rejeita texto, vazio ou número fora da faixa com a mensagem
+`"Opção inválida. Digite um número de 0 a 7."`.
+
+## 7. Documentação
+
+- [Algoritmos: busca linear e Selection Sort](docs/algoritmos.md)
+- [Testes](docs/testes.md)
