@@ -1,10 +1,11 @@
 from registro import Registro
 from lista import ListaEncadeada
-from algoritmos import buscar_por_categoria, buscar_por_titulo, ordenar_lista
+from algoritmos import (buscar_por_categoria, buscar_por_titulo,
+                        normalizar_texto, ordenar_lista)
 
 TIPOS_VALIDOS = ("Oferta", "Pedido", "Projeto")
 
-# limites de tamanho dos campos (iguais aos do modelo C)
+# limites de tamanho dos campos de texto
 MAX_TITULO = 100
 MAX_TIPO = 10
 MAX_CATEGORIA = 50
@@ -55,19 +56,42 @@ def ler_inteiro(prompt: str, minimo: int | None = None,
         return valor
 
 
+def _normalizar_tipo(valor: str) -> str | None:
+    """Converte o texto em um dos tipos válidos, ou None se inválido."""
+    normalizado = normalizar_texto(valor)
+    for tipo in TIPOS_VALIDOS:
+        if normalizar_texto(tipo) == normalizado:
+            return tipo
+    return None
+
+
 def ler_tipo() -> str:
-    """Lê o tipo, aceitando apenas Oferta, Pedido ou Projeto."""
+    """Lê o tipo, aceitando Oferta, Pedido ou Projeto em qualquer caixa."""
     while True:
         valor = ler_texto("Tipo (Oferta/Pedido/Projeto)", max_len=MAX_TIPO)
-        if valor in TIPOS_VALIDOS:
-            return valor
+        tipo = _normalizar_tipo(valor)
+        if tipo is not None:
+            return tipo
+        print("Tipo inválido. Digite Oferta, Pedido ou Projeto.")
+
+
+def ler_tipo_opcional(valor_atual: str) -> str:
+    """Lê o tipo; Enter mantém o valor atual."""
+    while True:
+        valor = ler_texto(f"Tipo (Oferta/Pedido/Projeto) [{valor_atual}]",
+                          obrigatorio=False, max_len=MAX_TIPO)
+        if valor == "":
+            return valor_atual
+        tipo = _normalizar_tipo(valor)
+        if tipo is not None:
+            return tipo
         print("Tipo inválido. Digite Oferta, Pedido ou Projeto.")
 
 
 def ler_id(lista: ListaEncadeada) -> int | None:
     """Lê um ID inteiro que ainda não exista na lista. None cancela."""
     while True:
-        id = ler_inteiro("ID (0 para cancelar)")
+        id = ler_inteiro("ID (0 para cancelar)", minimo=0)
         if id == 0:                             # cancela o cadastro
             print("Cadastro cancelado.")
             return None
@@ -259,7 +283,6 @@ def ordenar_e_exibir(lista: ListaEncadeada) -> None:
     """Submenu de ordenação e exibição da lista."""
     if len(lista) == 0:                         # lista vazia
         print("A lista está vazia. Nenhum registro para ordenar.")
-        lista.imprimir_lista()
         return
     if len(lista) == 1:                         # só um registro
         print("A lista tem apenas um registro; nada a ordenar.")
@@ -290,22 +313,27 @@ def analise(lista: ListaEncadeada) -> None:
 
     total_registros = 0
     total_horas = 0
-    categorias = {}                             # conta categorias só aqui
+    categorias: dict[str, tuple[str, int]] = {}  # conta categorias só aqui
 
     atual = lista.cabeca
     while atual is not None:
         total_registros += 1
         total_horas += atual.dados.horas
         categoria = atual.dados.categoria
-        categorias[categoria] = categorias.get(categoria, 0) + 1
+        chave = normalizar_texto(categoria)
+        if chave in categorias:
+            nome, quantidade = categorias[chave]
+            categorias[chave] = (nome, quantidade + 1)
+        else:
+            categorias[chave] = (categoria, 1)
         atual = atual.proximo
 
     print("\n--- Análise do banco de tempo ---")
     print(f"Total de registros: {total_registros}")
     print(f"Total de horas (créditos): {total_horas}")
     print("Registros por categoria:")
-    for categoria, quantidade in categorias.items():
-        print(f"  {categoria}: {quantidade}")
+    for nome, quantidade in categorias.values():
+        print(f"  {nome}: {quantidade}")
 
 
 def exibir_menu() -> None:
@@ -324,6 +352,22 @@ def exibir_menu() -> None:
     print("=" * 50)
 
 
+def ler_opcao_menu() -> int:
+    """Lê a opção do menu principal, aceitando apenas 0 a 7."""
+    while True:
+        try:
+            valor = int(input("Opção: ").strip())
+        except ValueError:
+            print("Opção inválida. Digite um número de 0 a 7.")
+            continue
+        except (EOFError, KeyboardInterrupt):
+            raise SairPrograma
+        if valor < 0 or valor > 7:
+            print("Opção inválida. Digite um número de 0 a 7.")
+            continue
+        return valor
+
+
 def executar_opcao(lista: ListaEncadeada, opcao: int) -> None:
     """Executa a opção escolhida no menu."""
     if opcao == 1:
@@ -340,10 +384,8 @@ def executar_opcao(lista: ListaEncadeada, opcao: int) -> None:
         ordenar_e_exibir(lista)
     elif opcao == 7:
         analise(lista)
-    elif opcao == 0:
+    else:  # opcao == 0
         print("Encerrando o programa. Obrigado por usar o Colabre!")
-    else:
-        print("Opção inválida. Tente novamente.")
 
 
 def main() -> None:
@@ -352,7 +394,7 @@ def main() -> None:
     try:
         while True:
             exibir_menu()
-            opcao = ler_inteiro("Opção", 0, 7)
+            opcao = ler_opcao_menu()
             if opcao == 0:
                 executar_opcao(lista, opcao)
                 break
