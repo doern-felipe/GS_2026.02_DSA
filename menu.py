@@ -186,18 +186,6 @@ def ler_texto_opcional(campo: str, valor_atual: str, max_len: int) -> str:
     return valor if valor != "" else valor_atual
 
 
-def ler_tipo_opcional(valor_atual: str) -> str:
-    """Lê o tipo; Enter mantém o valor atual."""
-    while True:
-        valor = ler_texto(f"Tipo (Oferta/Pedido/Projeto) [{valor_atual}]",
-                          obrigatorio=False, max_len=MAX_TIPO)
-        if valor == "":
-            return valor_atual
-        if valor in TIPOS_VALIDOS:
-            return valor
-        print("Tipo inválido. Digite Oferta, Pedido ou Projeto.")
-
-
 def ler_inteiro_positivo_opcional(campo: str, valor_atual: int) -> int:
     """Lê um inteiro > 0; Enter mantém o valor atual."""
     while True:

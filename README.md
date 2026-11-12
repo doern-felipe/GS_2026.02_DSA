@@ -14,8 +14,8 @@ ofertas, pedidos e projetos da comunidade, permitindo que o cidadão encontre
 ajuda e se reconheça como parte da rede.
 
 O cidadão atendido: qualquer morador da comunidade que queira oferecer
-conhecimento/tempo (ex.: aulas de reforço, consertos, culinária, horta) ou
-precisa pedir ajuda.
+conhecimento ou tempo (ex.: aulas de reforço, consertos, culinária, horta) ou
+que precise pedir ajuda.
 
 Sobre o nome: o **"AI"** é um **assistente de organização e busca** — ele
 estrutura os dados em uma lista encadeada e localiza registros. **Não** é usada
@@ -59,6 +59,7 @@ python -m unittest -v
 ├── menu.py            # menu, leituras e validações
 └── docs/
     ├── algoritmos.md  # busca linear e Selection Sort
+    ├── analise.md     # análise Big-O e contexto CitizenTech
     └── testes.md      # plano e evidências de teste
 ```
 
@@ -68,7 +69,7 @@ A classe `Registro` (em `registro.py`) tem os campos abaixo.
 
 | Campo | Tipo | Obrigatório | Validação |
 |-------|------|-------------|-----------|
-| `id` | `int` | Sim | Único; não negativo (`minimo=0`); `0` cancela o cadastro |
+| `id` | `int` | Sim | Único; inteiro maior ou igual a 1 (digitar `0` cancela o cadastro) |
 | `titulo` | `str` | Sim | Não vazio; até 100 caracteres |
 | `tipo` | `str` | Sim | `Oferta`, `Pedido` ou `Projeto` (aceita qualquer caixa, ex.: `"oferta"`, `"PEDIDO"`) |
 | `categoria` | `str` | Sim | Não vazio; até 50 caracteres |
@@ -136,12 +137,12 @@ Menu principal (em `menu.py`):
 
 | Opção | O que faz | Validações | Função chamada |
 |-------|-----------|------------|----------------|
-| 1 | Cadastrar registro | ID único e não negativo; campos obrigatórios e com limite; tipo válido; horas > 0; `0` cancela | `cadastrar_registro` |
+| 1 | Cadastrar registro | ID único e maior ou igual a 1; campos obrigatórios e com limite; tipo válido; horas > 0; `0` cancela | `cadastrar_registro` |
 | 2 | Consultar por ID | Lista não vazia; ID inteiro | `consultar_por_id` |
 | 3 | Pesquisar por título ou categoria | Lista não vazia; opção 0–2; termo não vazio | `pesquisar` |
-| 4 | Atualizar registro | Lista não vazia; ID inteiro; novos valores revalidados; `Enter` mantém o valor | `atualizar_registro` |
+| 4 | Atualizar registro | Lista não vazia; ID inteiro; ID não pode ser alterado; novos valores revalidados; `Enter` mantém o valor | `atualizar_registro` |
 | 5 | Excluir registro | Lista não vazia; ID inteiro; confirmação `s/n` | `excluir_registro` |
-| 6 | Ordenar e exibir | Lista com 0 ou 1 registro é avisada; opção 0–3 | `ordenar_e_exibir` |
+| 6 | Ordenar e exibir | Lista com 0 ou 1 registro é avisada; opção 0–3; a lista permanece na nova ordem | `ordenar_e_exibir` |
 | 7 | Análise | Lista não vazia; conta registros, horas e categorias | `analise` |
 | 0 | Sair | — | `executar_opcao` |
 
@@ -152,4 +153,5 @@ rejeita texto, vazio ou número fora da faixa com a mensagem
 ## 7. Documentação
 
 - [Algoritmos: busca linear e Selection Sort](docs/algoritmos.md)
+- [Análise Big-O e CitizenTech](docs/analise.md)
 - [Testes](docs/testes.md)
